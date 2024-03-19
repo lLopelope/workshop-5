@@ -5,20 +5,6 @@ import { Value } from "../types";
 import { NodeState } from "../types";
 import { delay } from "../utils";
 
-
-
-
-type Message = {
-  sender: number; 
-  round: number; 
-  payload: any; 
-};
-
-let currentNodeState: NodeState = {killed: false, x: null, decided: null, k: null}; 
-let proposals: Map<number, Value[]> = new Map();
-let votes: Map<number, Value[]> = new Map(); 
-
-
 export async function node(
   nodeId: number, // the ID of the node
   N: number, // total number of nodes in the network
@@ -29,17 +15,23 @@ export async function node(
   setNodeIsReady: (index: number) => void // this should be called when the node is started and ready to receive requests
 ) {
   const node = express();
-  node.use(express.json());
-  node.use(bodyParser.json());
+  node.use(express.json()); // Middleware to parse JSON bodies
+  node.use(bodyParser.json()); // Middleware to parse JSON bodies, bodyParser is deprecated in favor of express.json()
+
+  let currentNodeState: NodeState = {killed: false, x: null, decided: null, k: null}; 
+  let proposals: Map<number, Value[]> = new Map(); 
+  let votes: Map<number, Value[]> = new Map(); 
 
   // TODO implement this
   // this route allows retrieving the current status of the node
-   node.get("/status", (req, res) => {
+  node.get("/status", (req, res) => {
     if (isFaulty) {
-    res.status(500).send('faulty');
-  } else {
-    res.status(200).send('live');
-  }});
+      res.status(500).send("faulty"); 
+    }
+    else {
+      res.status(200).send("live"); 
+    }
+  });
 
   // TODO implement this
   // this route allows the node to receive messages from other nodes
@@ -56,7 +48,6 @@ export async function node(
         if (proposal.length >= (N - F)) {
           let count0 = proposal.filter((el) => el == 0).length;
           let count1 = proposal.filter((el) => el == 1).length;
-         
           if (count0 > (N / 2)) {
             x = 0;
           }
@@ -66,7 +57,6 @@ export async function node(
           else {
             x = "?";
           }
-         
           for (let i = 0; i < N; i++) {
             fetch(`http://localhost:${BASE_NODE_PORT + i}/message`, {
               method: 'POST',
@@ -79,7 +69,6 @@ export async function node(
         }
       }
       else if (messageType == "vote") {
-    
         if (!votes.has(k)) {
           votes.set(k, []); 
         }
@@ -88,6 +77,7 @@ export async function node(
 
         if (vote.length >= (N - F)) {
           console.log("vote", vote,"node :",nodeId,"k :",k);
+
           let count0 = vote.filter((el) => el == 0).length;
           let count1 = vote.filter((el) => el == 1).length;
 
@@ -107,9 +97,10 @@ export async function node(
               currentNodeState.x = 1;
             }
             else {
-              currentNodeState.x = Math.random() > 0.5 ? 0 : 1;
+              currentNodeState.x = Math.random() > 0.5 ? 0 : 1; 
             }
             currentNodeState.k = k + 1; 
+
             for (let i = 0; i < N; i++) {
               fetch(`http://localhost:${BASE_NODE_PORT + i}/message`, {
                 method: 'POST',
@@ -123,7 +114,7 @@ export async function node(
         }
       }
     }
-    res.status(200).send("Message received and processed.");
+    res.status(200).send("Message received and processed."); 
   });
 
   // TODO implement this
@@ -156,10 +147,10 @@ export async function node(
 
   // TODO implement this
   // this route is used to stop the consensus algorithm
-   node.get("/stop", async (req, res) => {
-    currentNodeState.killed = true;
-    res.status(200).send("killed");
-   });
+  node.get("/stop", async (req, res) => {
+    currentNodeState.killed = true; 
+    res.status(200).send("killed"); 
+  });;
 
   // TODO implement this
   // get the current state of a node
@@ -171,15 +162,12 @@ export async function node(
       k: currentNodeState.k,
     });
   });
-
-
   // start the server
   const server = node.listen(BASE_NODE_PORT + nodeId, async () => {
     console.log(
-      `Node ${nodeId} is listening on port ${BASE_NODE_PORT + nodeId}`
+      `Node ${nodeId} is listening on port ${BASE_NODE_PORT + nodeId}` 
     );
 
-    // the node is ready
     setNodeIsReady(nodeId);
   });
 
