@@ -375,7 +375,6 @@ describe("Ben-Or decentralized consensus algorithm", () => {
 
         states = await getNodesState(faultyArray.length);
       }
-
       for (let index = 0; index < states.length; index++) {
         const state = states[index];
 
@@ -390,11 +389,9 @@ describe("Ben-Or decentralized consensus algorithm", () => {
         }
       }
     });
-
     test.todo(
       "Hidden test - Fault Tolerance Threshold - No Faulty Nodes - 1 pt"
     );
-
     it("Finality is reached - Randomized - 1 pt", async () => {
       const faultyArray = [false, false, true, false, true, false, false];
 
